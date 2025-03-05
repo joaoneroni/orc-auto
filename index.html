@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Perímetro, Tempo de Corte, Área, Peso e Preço</title>
+    <script>
+        function atualizarChapas() {
+            const material = document.getElementById('material').value;
+            const espessuraChapa = document.getElementById('espessura_chapa');
+            espessuraChapa.innerHTML = '';
+
+            const chapas = {
+                "AÇO 1020": ["CHAPA 20", "CHAPA 18", "CHAPA 16", "CHAPA 14", "CHAPA 1/8\"", "CHAPA 3/16\"", "CHAPA 1/4\"", "CHAPA 5/16\"", "CHAPA 3/8\"", "CHAPA 1/2\"", "CHAPA 5/8\""],
+                "AÇO 1045": ["CHAPA 1/8\"", "CHAPA 3/16\"", "CHAPA 1/4\"", "CHAPA 5/16\"", "CHAPA 3/8\"", "CHAPA 1/2\"", "CHAPA 5/8\""],
+                "ALUMINIO": ["CHAPA 20", "CHAPA 18", "CHAPA 16", "CHAPA 14", "CHAPA 1/8\"", "CHAPA 3/16\"", "CHAPA 1/4\""],
+                "INOX 304": ["CHAPA 20", "CHAPA 18", "CHAPA 16", "CHAPA 14", "CHAPA 1/8\"", "CHAPA 3/16\"", "CHAPA 1/4\""],
+                "INOX 430": ["CHAPA 20", "CHAPA 18", "CHAPA 16", "CHAPA 14"],
+            };
+
+            chapas[material].forEach(chapa => {
+                const option = document.createElement('option');
+                option.value = chapa;
+                option.textContent = chapa;
+                espessuraChapa.appendChild(option);
+            });
+        }
+    </script>
+</head>
+<body onload="atualizarChapas()">
+    <h1>Orçamento Corte Laser</h1>
+    <form id="uploadForm">
+        <label for="file">Selecione o arquivo DXF:</label>
+        <input type="file" name="file" accept=".dxf" required>
+        <br><br>
+        <label for="material">Material:</label>
+        <select id="material" name="material" onchange="atualizarChapas()" required>
+            <option value="AÇO 1020">AÇO 1020</option>
+            <option value="AÇO 1045">AÇO 1045</option>
+            <option value="ALUMINIO">ALUMINIO</option>
+            <option value="INOX 304">INOX 304</option>
+            <option value="INOX 430">INOX 430</option>
+        </select>
+        <br><br>
+        <label for="espessura_chapa">Espessura da Chapa:</label>
+        <select id="espessura_chapa" name="espessura_chapa" required></select>
+        <br><br>
+        <button type="submit">Calcular</button>
+        <br><br>
+    </form>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('result').innerText = 'Erro: ' + data.error;
+                } else {
+                    document.getElementById('result').innerHTML = `
+                        Perímetro Total: ${data.perimetro.toFixed(2)} mm<br>
+                        Tempo de Corte: ${data.tempo_corte.toFixed(2)} segundos<br>
+                        Largura: ${data.largura.toFixed(2)} mm<br>
+                        Altura: ${data.altura.toFixed(2)} mm<br>
+                        Área Total: ${data.area_total.toFixed(2)} mm²<br>
+                        Peso: ${data.peso.toFixed(2)} gramas<br>
+                        Preço: R$ ${data.preco.toFixed(2)} <br>
+                    `;
+                }
+            })
+            .catch(error => {
+                document.getElementById('result').innerText = 'Erro: ' + error;
+            });
+        });
+    </script>
+</body>
+</html>
